@@ -43,6 +43,7 @@ class LoadContentPortal():
                         live.refresh()
 
     def dump_portal_to_csv(self):
+        conf = ConfigCMD()
         o_portal = self._auth.login_portal()
         l_user = o_portal.users.search('!esri_ & !admin')
         console = Console()
@@ -57,14 +58,25 @@ class LoadContentPortal():
         table.add_column('folder')
         table.add_column('user')
         table_centered = Align.left(table)
-        with Live(table_centered, console=console, screen=False, refresh_per_second=5):
-            for user in l_user:
-                u_content = user.items()
-                for item in u_content:
-                    table.add_row(item.id, item.title, item.type, item.homepage, item.name, item.owner, json.dumps(item.shared_with), 'root',user.username)
-                folders = user.folders
-                for folder in folders:
-                    f_items = user.items(folder=folder['title'])
-                    for item in f_items:
-                        table.add_row(item.id, item.title, item.type, item.homepage, item.name, item.owner, json.dumps(item.shared_with), folder['title'],user.username)
+
+        with open(conf.portal_contents_out_file, 'w', newline='\n') as csvfile:
+            try:
+                csvwriter = csv.writer(csvfile, delimiter=';')
+                csvwriter.writerow(['id','title','type','homepage','name','owner','shared_with', 'folder','user'])
+                with Live(table_centered, console=console, screen=False, refresh_per_second=5):
+                    for user in l_user:
+                        u_content = user.items()
+                        for item in u_content:
+                            table.add_row(item.id, item.title, item.type, item.homepage, item.name, item.owner, json.dumps(item.shared_with), 'root',user.username)
+                            csvwriter.writerow([item.id, item.title, item.type, item.homepage, item.name, item.owner, json.dumps(item.shared_with), 'root',user.username])
+                        folders = user.folders
+                        for folder in folders:
+                            f_items = user.items(folder=folder['title'])
+                            for item in f_items:
+                                table.add_row(item.id, item.title, item.type, item.homepage, item.name, item.owner, json.dumps(item.shared_with), folder['title'],user.username)
+                                csvwriter.writerow([item.id, item.title, item.type, item.homepage, item.name, item.owner, json.dumps(item.shared_with), 'root',user.username])
+            except Exception as e:
+                csvfile.close()
+
+
                         
