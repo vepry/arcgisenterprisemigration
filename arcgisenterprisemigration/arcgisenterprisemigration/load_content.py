@@ -6,6 +6,7 @@ from rich.align import Align
 from ..config import ConfigCMD
 import csv
 import json
+from arcgis.gis.server.catalog import ServicesDirectory
 
 
 class LoadContentPortal():
@@ -41,6 +42,16 @@ class LoadContentPortal():
                         table.add_row(item.id, item.title, item.type, item.homepage, item.name, item.owner, json.dumps(
                             item.shared_with), folder['title'], user.username)
                         live.refresh()
+
+    def dump_server_to_console(self):
+        config = ConfigCMD()
+        o_server = self._auth.login_server_w_portal()
+        o_content_svc = o_server.content
+        l_folder = o_content_svc.folders
+        for i_folder in l_folder:
+            l_svc = o_content_svc.list(i_folder)
+            for i_svc in l_svc:
+                pass
 
     def dump_portal_to_csv(self):
         conf = ConfigCMD()
@@ -78,5 +89,19 @@ class LoadContentPortal():
             except Exception as e:
                 csvfile.close()
 
+
+class LoadContentServer():
+    def __init__(self, auth: LoginArcgisPortal) -> None:
+        self._auth = auth
+
+    def dump_to_console(self):
+        config = ConfigCMD()
+        o_server = self._auth.login_server()
+        o_content_svc = o_server.content
+        l_folder = o_content_svc.folders
+        for i_folder in l_folder:
+            l_svc = o_content_svc.list(i_folder)
+            for i_svc in l_svc:
+                pass
 
                         
