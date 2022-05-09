@@ -13,6 +13,7 @@ class ConfigCMD():
 
     user_role_csv_filename = 'users.csv'
     portal_content_csv_filename = 'portal_contents.csv'
+    server_content_csv_filename = 'server_contents.csv'
     deploy_service_report_filename = 'deploy_report.csv'
 
     user_role_out_file = ''
@@ -50,6 +51,7 @@ class ConfigCMD():
 
         self.user_role_out_file = self.output_path + '\\' + self.user_role_folder + '\\' + self.user_role_csv_filename
         self.portal_contents_out_file = self.output_path + '\\' + self.content_folder + '\\' + self.portal_content_csv_filename
+        self.server_contents_out_file = self.output_path + '\\' + self.content_folder + '\\' + self.server_content_csv_filename
         self.deploy_sd_folder = self.output_path+ '\\' + self.deploy_sd_folder + '\\'
         self.arcgisinput_folder_path = self.input_path+ self.path_os_separator+ self.arcgisinput_folder + self.path_os_separator
         self.deploy_folder_input_path = self.input_path+self.path_os_separator+self.deploy_folder
@@ -57,4 +59,9 @@ class ConfigCMD():
         self.deploy_report_service_file = self.deploy_folder_output_path+self.path_os_separator+self.deploy_service_report_filename
         self.template_aprx_path = self.input_path+self.path_os_separator+"template.aprx"
         self.template_deploy_path = self.output_path+self.path_os_separator+"temp.aprx"
+        self.list_svc_portal_csv = self.input_path + self.path_os_separator + "l_portal.csv"
+        self.list_svc_server_csv = self.input_path + self.path_os_separator + "l_server.csv"
+        self.arcgis_source_portal_username = os.environ['ARCGIS_SOURCE_PORTAL_USERNAME']
+        self.arcgis_source_portal_password = os.environ['ARCGIS_SOURCE_PORTAL_PASSWORD']
+        self.arcgis_enterprise_source_url = os.environ['ARCGIS_SOURCE_URL']
 
