@@ -94,14 +94,64 @@ class LoadContentServer():
     def __init__(self, auth: LoginArcgisPortal) -> None:
         self._auth = auth
 
-    def dump_to_console(self):
+    def dump_server_to_console(self):
         config = ConfigCMD()
-        o_server = self._auth.login_server()
-        o_content_svc = o_server.content
-        l_folder = o_content_svc.folders
-        for i_folder in l_folder:
-            l_svc = o_content_svc.list(i_folder)
-            for i_svc in l_svc:
-                pass
+        #o_server = self._auth.login_server()
+        # o_server = self._auth.login_server_w_portal()
+        o_arc = ServicesDirectory(config.arcgis_enterprise_source_url, config.arcgis_source_portal_username, config.arcgis_source_portal_password)
+        # o_content_svc = o_server.content
+        l_folder = o_arc.admin.services.folders
+        console = Console()
+        table = Table(show_header=True)
+        table.add_column("name")
+        table.add_column("filePath")
+        table_centered = Align.left(table)
+        with Live(table_centered, console=console, screen=False, auto_refresh=False) as live:
+            for i_folder in l_folder:
+                l_svc = o_arc.admin.services.list(i_folder)
+                for i_svc in l_svc:
+                    try:
+                        svc_name = i_svc.properties.get('serviceName')
+                        svc_file = i_svc.properties.get('properties')['filePath']
+                        table.add_row(svc_name, svc_file)
+                    except Exception as e:
+                        continue
+                    live.refresh()
+                # table.add_row()
 
-                        
+    def dump_server_to_csv(self):
+        config = ConfigCMD()
+        # o_server = self._auth.login_server()
+        # o_server = self._auth.login_server_w_portal()
+        o_arc = ServicesDirectory(config.arcgis_enterprise_source_url, config.arcgis_source_portal_username,
+                                  config.arcgis_source_portal_password)
+        # o_content_svc = o_server.content
+        l_folder = o_arc.admin.services.folders
+        console = Console()
+        table = Table(show_header=True)
+        table.add_column("name")
+        table.add_column("filePath")
+        table_centered = Align.left(table)
+        with open(config.server_contents_out_file, 'w', newline='\n') as csvfile:
+            try:
+                csvwriter = csv.writer(csvfile, delimiter=';')
+                csvwriter.writerow(
+                    ['name', 'filePath'])
+                with Live(table_centered, console=console, screen=False, auto_refresh=False) as live:
+                    for i_folder in l_folder:
+                        l_svc = o_arc.admin.services.list(i_folder)
+                        for i_svc in l_svc:
+                            try:
+                                svc_name = i_svc.properties.get('serviceName')
+                                svc_file = i_svc.properties.get('properties')['filePath']
+                                table.add_row(svc_name, svc_file)
+                                csvwriter.writerow([svc_name, svc_file])
+                                csvfile.flush()
+                            except Exception as e:
+                                continue
+                            live.refresh()
+                        # table.add_row()
+            except Exception as e:
+                pass
+            csvfile.close()
+
