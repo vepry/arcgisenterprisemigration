@@ -55,4 +55,6 @@ class ConfigCMD():
         self.deploy_folder_input_path = self.input_path+self.path_os_separator+self.deploy_folder
         self.deploy_folder_output_path = self.output_path+self.path_os_separator+self.deploy_folder
         self.deploy_report_service_file = self.deploy_folder_output_path+self.path_os_separator+self.deploy_service_report_filename
-        
+        self.template_aprx_path = self.input_path+self.path_os_separator+"template.aprx"
+        self.template_deploy_path = self.output_path+self.path_os_separator+"temp.aprx"
+
