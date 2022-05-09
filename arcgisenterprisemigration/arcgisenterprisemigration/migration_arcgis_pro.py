@@ -10,11 +10,10 @@ class AuthArcgisPortalPro():
 
 
 class DeployArcgisPortalPro():
-    def __init__(self, auth: AuthArcgisPortalPro,
-                 aprx_path) -> None:
+    def __init__(self, auth: AuthArcgisPortalPro) -> None:
         self._config = ConfigCMD()
         self._auth = auth
-        self._aprx = arcpy.mp.ArcGISProject(aprx_path)
+        self._aprx = None
 
     def deploy_service(self, svc_name, portal_folder, server_folder, lyr_mxd_path, copy_data_to_server=False,
                        overwrite_service=False,
@@ -23,6 +22,9 @@ class DeployArcgisPortalPro():
         self._prepare_map_service_portal_sd(svc_name, self._auth.portal_url, portal_folder, server_folder,
                                             copy_data_to_server, overwrite_service,
                                             credits, summary, tags, description, activate_feature_service)
+
+    def deploys(self):
+        pass
 
     def append_layer(self, layer_mxd_path: str):
         self._aprx.importDocument(layer_mxd_path)
