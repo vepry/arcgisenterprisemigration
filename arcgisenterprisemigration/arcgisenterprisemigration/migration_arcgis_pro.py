@@ -24,7 +24,19 @@ class DeployArcgisPortalPro():
                                             credits, summary, tags, description, activate_feature_service)
 
     def deploys(self):
-        pass
+        with open(self._config.list_svc_server_csv) as report_file:
+            l_mapx = {}
+            for mapxfilename in l_mapx:
+                t_proj = arcpy.mp.ArcGISProject('')
+                t_proj.importDocument(l_mapx[mapxfilename]['file'])
+                l_maps = t_proj.listMaps()
+                for o_map in l_maps:
+                    sd_file = ''
+                    sddraft_file = ''
+                    try:
+                        pass
+                    except Exception as e:
+                        pass
 
     def append_layer(self, layer_mxd_path: str):
         self._aprx.importDocument(layer_mxd_path)
