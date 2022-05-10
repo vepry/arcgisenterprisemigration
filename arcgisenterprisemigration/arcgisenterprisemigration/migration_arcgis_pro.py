@@ -1,12 +1,58 @@
 import arcpy
 from ..config import ConfigCMD
 import xml.dom.minidom as DOM
+import json, requests
+from requests.structures import CaseInsensitiveDict
 
 
 class AuthArcgisPortalPro():
     def __init__(self, url_portal, username_portal, password_portal) -> None:
         self.portal_url = url_portal
         self.auth = arcpy.SignInToPortal(url_portal, username_portal, password_portal)
+
+class AuthArcgisPortalRestPro():
+    def __init__(self, url_portal, username_portal, password_portal):
+        pass
+
+class AuthArcgisServerRestPro():
+    def __init__(self, url_portal, url_server, username_server, password_server):
+        self.url_portal = url_portal
+        self.url_server_admin = url_server + '/admin'
+        # self.url_generatetoken = url_portal + '/sharing/rest/generateToken'
+        self.url_generatetoken = url_server + '/admin/login?redirect='
+        self.username_server = username_server
+        self.password_server = password_server
+
+    def generate_token(self):
+        # payloads = {
+        #     'username': self.username_server,
+        #     'password': self.password_server,
+        #     'client': 'referer',
+        #     'referer': self.url_portal,
+        #     'expiration': 60,
+        #     'f': 'json'
+        # }
+        payloads = {
+            'username': self.username_server,
+            'password': self.password_server,
+            'portalToken': '',
+            'referer': ''
+        }
+        # req = requests.get(self.url_generatetoken, params=payloads, verify=False)
+        req = requests.post(self.url_generatetoken, data=payloads, verify=False)
+        self._cookies = req.request.headers.get('Cookie')
+        self._cookies = self._cookies + ';' +req.headers.get('set-cookie')
+
+        # a = req.json()
+        # self.token = a['token']
+        # request = self.http.request('GET', self.url_generatetoken, fields=payloads)
+        # data = request.data.encode('utf-8')
+
+    def yui(self):
+        header = CaseInsensitiveDict()
+        header['Cookie'] = self._cookies
+        a = requests.get('https://asdasdasda/arcgis/admin/services/batasdesa.MapServer?f=json', headers=header)
+        pass
 
 
 class DeployArcgisPortalPro():
