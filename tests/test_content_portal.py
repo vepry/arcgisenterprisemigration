@@ -10,4 +10,6 @@ class TestPortalContentDump(unittest.TestCase):
 
     def test_load_server_to_console(self):
         runner = CliRunner()
-        pass
+
+    def test_load_server_to_console(self):
+       pass
