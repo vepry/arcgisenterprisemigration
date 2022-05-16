@@ -28,7 +28,7 @@ class LoadUserRoleArcgisPortal():
     def dump_portal_to_csv(self):
         conf = ConfigCMD()
         o_portal = self._auth.login_portal()
-        l_user = o_portal.users.search('')
+        l_user = o_portal.users.search('', max_users=50000)
         console = Console()
         table = Table(show_header=True)
         table.add_column("Username")
@@ -45,9 +45,12 @@ class LoadUserRoleArcgisPortal():
                 csvfile.flush()
                 with Live(table_centered, console=console, screen=False, auto_refresh=False) as live:
                     for user in l_user:
-                        csvwriter.writerow([user.username, user.firstName, user.lastName, user.email, str(user.role)])
-                        table.add_row(user.username, user.firstName, user.lastName, user.email, str(user.role))
-                        live.refresh()
-                        csvfile.flush()
+                        try:
+                            csvwriter.writerow([user.username, user.firstName, user.lastName, user.email, str(user.role)])
+                            table.add_row(user.username, user.firstName, user.lastName, user.email, str(user.role))
+                            live.refresh()
+                            csvfile.flush()
+                        except Exception as e:
+                            continue
             except Exception as e:
                 csvfile.close()
