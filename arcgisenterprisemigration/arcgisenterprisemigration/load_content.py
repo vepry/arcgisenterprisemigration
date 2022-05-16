@@ -1,4 +1,4 @@
-from .main import LoginArcgisPortal
+from .main import LoginArcgisPortal, LoginArcgisServerRest
 from rich.console import Console
 from rich.table import Table
 from rich.live import Live
@@ -7,6 +7,8 @@ from ..config import ConfigCMD
 import csv
 import json
 from arcgis.gis.server.catalog import ServicesDirectory
+from requests.structures import CaseInsensitiveDict
+import requests
 
 
 class LoadContentPortal():
@@ -151,6 +153,54 @@ class LoadContentServer():
                                 continue
                             live.refresh()
                         # table.add_row()
+            except Exception as e:
+                pass
+            csvfile.close()
+
+
+class LoadContentServerRest():
+    def __init__(self, auth: LoginArcgisServerRest) -> None:
+        self._auth = auth
+
+    def dump_to_console(self):
+        pass
+    def dump_to_csv(self):
+        config = ConfigCMD()
+        self._auth.generate_token()
+        console = Console()
+        table = Table(show_header=True)
+        table.add_column("name")
+        table.add_column("folder")
+        table.add_column("filePath")
+        table_centered = Align.left(table)
+
+        with open(config.server_contents_out_file, 'w', newline='\n') as csvfile:
+            try:
+                csvwriter = csv.writer(csvfile, delimiter=';')
+                csvwriter.writerow(
+                    ['name', 'folder', 'filePath'])
+                with Live(table_centered, console=console, screen=False, auto_refresh=False) as live:
+                    url_service = 'https://idepbpn-adgis03.ad.phm-pertamina.com:6443/arcgis' + '/admin/services?f=pjson'
+                    header = CaseInsensitiveDict()
+                    header['Cookie'] = self._auth._cookies
+                    res = requests.get(url_service, headers=header)
+                    o_data = res.json()
+                    for o_folder in o_data['folders']:
+                        url_svc_prop = 'https://idepbpn-adgis03.ad.phm-pertamina.com:6443/arcgis' + '/admin/services/'+o_folder+'?f=pjson'
+                        res_svc = requests.get(url_svc_prop, headers=header)
+                        l_svc = res_svc.json()
+                        for o_svc in l_svc['services']:
+                            try:
+                                url_svc_i_prop = 'https://idepbpn-adgis03.ad.phm-pertamina.com:6443/arcgis' + '/admin/services/'+o_folder+"/"+o_svc['serviceName']+"."+o_svc['type']+'?f=pjson'
+                                req_i_prop = requests.get(url_svc_i_prop, headers=header)
+                                data_svc = req_i_prop.json()
+                                filePath = data_svc['properties']['filePath']
+                                table.add_row(o_svc['serviceName'], o_folder, filePath)
+                                csvwriter.writerow([o_svc['serviceName'], o_folder, filePath])
+                                csvfile.flush()
+                                live.refresh()
+                            except Exception as e:
+                                continue
             except Exception as e:
                 pass
             csvfile.close()

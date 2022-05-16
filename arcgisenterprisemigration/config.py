@@ -2,9 +2,9 @@ import os
 
 
 class ConfigCMD():
-    main_path = r'C:\project'
-    input_path = r'C:\project\input'
-    output_path = r'C:\project\output'
+    main_path = r'C:\local\project'
+    input_path = r'C:\local\project\input'
+    output_path = r'C:\local\project\output'
     user_role_folder = 'users'
     content_folder = 'contents'
     deploy_sd_folder = 'deploy-sd'
@@ -57,11 +57,11 @@ class ConfigCMD():
         self.deploy_folder_input_path = self.input_path+self.path_os_separator+self.deploy_folder
         self.deploy_folder_output_path = self.output_path+self.path_os_separator+self.deploy_folder
         self.deploy_report_service_file = self.deploy_folder_output_path+self.path_os_separator+self.deploy_service_report_filename
-        self.template_aprx_path = self.input_path+self.path_os_separator+"template.aprx"
+        self.template_aprx_path = self.input_path+self.path_os_separator+"/template/template.aprx"
         self.template_deploy_path = self.output_path+self.path_os_separator+"temp.aprx"
         self.list_svc_portal_csv = self.input_path + self.path_os_separator + "l_portal.csv"
         self.list_svc_server_csv = self.input_path + self.path_os_separator + "l_server.csv"
         self.arcgis_source_portal_username = os.environ['ARCGIS_SOURCE_PORTAL_USERNAME']
         self.arcgis_source_portal_password = os.environ['ARCGIS_SOURCE_PORTAL_PASSWORD']
-        self.arcgis_enterprise_source_url = os.environ['ARCGIS_SOURCE_URL']
+        self.arcgis_enterprise_source_url = os.environ['ARCGIS_ENTERPRISE_SOURCE_URL']
 
