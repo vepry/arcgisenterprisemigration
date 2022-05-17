@@ -74,12 +74,15 @@ class DeployArcgisPortalPro():
         self._aprx.save()
         self.fixing_new_datasource(new_conn_str, name_conn)
         self._aprx.save()
-        self._aprx.saveACopy(r"C:\Local\project\output\aprx"+"\\"+ svc_name + ".aprx")
+        new_aprx_path = r"C:\Local\project\output\aprx"+"\\"+ svc_name + ".aprx"
+        if os.path.exists(new_aprx_path) == False:
+            self._aprx.saveACopy(new_aprx_path)
+        new_aprx = arcpy.mp.ArcGISProject(new_aprx_path)
         #del self._aprx
         #self._aprx.saveACopy(r"C:\Local\project\output\template2.aprx")
-        # self._prepare_map_service_portal_sd(svc_name, self._auth.portal_url, portal_folder, server_folder,
-                                            #copy_data_to_server, overwrite_service,
-                                            #metadata.credits, metadata.summary, metadata.tags, metadata.description, activate_feature_service)
+        self._prepare_map_service_portal_sd(svc_name, self._auth.portal_url, portal_folder, server_folder,
+                                            copy_data_to_server, overwrite_service,
+                                            metadata.credits, metadata.summary, metadata.tags, metadata.description, activate_feature_service)
 
     def deploys(self):
         with open(self._config.list_svc_server_csv) as report_file:
@@ -213,7 +216,7 @@ class DeployArcgisPortalPro():
 
             except Exception as e:
                 pass
-        
+
 
     def _phm_generate_xy_event_layer(self):
         pass
