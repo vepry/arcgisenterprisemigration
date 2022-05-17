@@ -72,39 +72,56 @@ def list_folder_portal(config, l_folder_portal):
 
 def step_deploy(config, deploy_portal_target, uri_arcgisinput, token_r_arcgisinput):
     skip_folders = ['Hosted', 'System', 'Utilities']
-    
-    with open(config.list_svc_portal_csv) as report_portal_file:  
-        csv_portal_report = csv.reader(report_portal_file, delimiter=';')
-        i_r_server = 0
-        i_r_portal = 0
-        for l_r_portal in csv_portal_report:
-            if  i_r_portal == 0:
-                i_r_portal = i_r_portal + 1
-                continue
-            with open(config.list_svc_server_csv) as report_server_file:
-                #make report ada beberapa mx yg ga ada di config store
-                csv_server_report = csv.reader(report_server_file, delimiter=';')
-                i_r_server = 0
-                for l_r_server in csv_server_report:
-                    if i_r_server == 0:
-                        i_r_server = i_r_server + 1
-                        continue
-                    if l_r_portal[1] != l_r_server[0]:
-                        continue
-                    if l_r_server[1] == 'Hosted':
-                        deploy_portal_target.clone_item(auth_portal_api_source, l_r_portal[0])
-                        continue
-                    if l_r_server[1] in skip_folders:
-                        continue
-                    if os.path.exists(r"C:\Local\project\output\aprx"+"\\"+ l_r_portal[1] + ".aprx"):
-                        continue
-                    url_mxd_file = l_r_server[2].replace(token_r_arcgisinput, uri_arcgisinput)
-                    url_mxd_file = url_mxd_file.replace('.msd', '.mxd')
-                    #check mxd
-                    try:
-                        deploy_portal_target.deploy_service(l_r_portal[1], l_r_portal[7], l_r_server[1], t_connstr_gisdbphmdev, url_mxd_file, name_conn='gisdbphmdev')
-                    except Exception as e:
-                        continue
+
+    with open(config.deploy_report_service_file, 'w', newline='\n') as deployment_report:
+        reportwriter = csv.writer(deployment_report, delimiter=';')
+        reportwriter.writerow(['id_old','svc_name','svc_type','owner_old','folder','status','err_msg'])
+        with open(config.list_svc_portal_csv, 'r') as report_portal_file:
+            csv_portal_report = csv.reader(report_portal_file, delimiter=';')
+            i_r_server = 0
+            i_r_portal = 0
+            for l_r_portal in csv_portal_report:
+                if i_r_portal == 0:
+                    i_r_portal = i_r_portal + 1
+                    continue
+                with open(config.list_svc_server_csv, 'r') as report_server_file:
+                    #make report ada beberapa mx yg ga ada di config store
+                    csv_server_report = csv.reader(report_server_file, delimiter=';')
+                    i_r_server = 0
+                    for l_r_server in csv_server_report:
+                        if i_r_server == 0:
+                            i_r_server = i_r_server + 1
+                            continue
+                        if l_r_portal[1] != l_r_server[0]:
+                            continue
+                        if l_r_server[1] == 'Hosted':
+                            try:
+                                deploy_portal_target.clone_item(auth_portal_api_source, l_r_portal[0])
+                                reportwriter.writerow(
+                                    [l_r_portal[0], l_r_portal[1], l_r_portal[2], l_r_portal[5], l_r_portal[7],
+                                     'Success', ''])
+                            except Exception as e:
+                                reportwriter.writerow([l_r_portal[0], l_r_portal[1], l_r_portal[2], l_r_portal[5], l_r_portal[7], 'Failed', 'Ini service hosted..'])
+                            continue
+                        if l_r_server[1] in skip_folders:
+                            continue
+                        # if os.path.exists(r"C:\Local\project\output\aprx"+"\\"+ l_r_portal[1] + ".aprx"):
+                        #     continue
+                        url_mxd_file = l_r_server[2].replace(token_r_arcgisinput, uri_arcgisinput)
+                        url_mxd_file = url_mxd_file.replace('.msd', '.mxd')
+                        if os.path.exists(url_mxd_file) == False:
+                            reportwriter.writerow([l_r_portal[0], l_r_portal[1], l_r_portal[2], l_r_portal[5], l_r_portal[7], 'Failed', 'Mxd tidak ada..'])
+                            continue
+                        #check mxd
+                        try:
+                            deploy_portal_target.deploy_service(l_r_portal[1], l_r_portal[7], l_r_server[1], t_connstr_gisdbphmdev, url_mxd_file, name_conn='gisdbphmdev')
+                            reportwriter.writerow(
+                                [l_r_portal[0], l_r_portal[1], l_r_portal[2], l_r_portal[5], l_r_portal[7],
+                                 'Success', ''])
+                        except Exception as e:
+                            reportwriter.writerow(
+                                [l_r_portal[0], l_r_portal[1], l_r_portal[2], l_r_portal[5], l_r_portal[7],
+                                 'Failed', str(e)])
 
 
 # arcpy.management.XYTableToPoint(r"C:\Local\EsriIndonnesia\geospatial@geodbphmdev.sde\GEOSPATIAL.WELL", r"C:\Users\L0300800\Documents\ArcGIS\Projects\MyProject\MyProject.gdb\WELL_XYTableToPoint", "X_OLD", "Y_OLD", None, 'PROJCS["Gunung_Segara_UTM_Zone_50S",GEOGCS["GCS_Gunung_Segara",DATUM["D_Gunung_Segara",SPHEROID["Bessel_1841",6377397.155,299.1528128]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",10000000.0],PARAMETER["Central_Meridian",117.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]];-5120200 3000 10000;0 1;0 1;0.001;0.001;0.001;IsHighPrecision')
