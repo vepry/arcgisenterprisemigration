@@ -178,7 +178,7 @@ class LoadContentServerRest():
             try:
                 csvwriter = csv.writer(csvfile, delimiter=';')
                 csvwriter.writerow(
-                    ['name', 'folder', 'filePath'])
+                    ['name', 'folder', 'filePath','rawProperties'])
                 with Live(table_centered, console=console, screen=False, auto_refresh=False) as live:
                     url_service = 'https://idepbpn-adgis03.ad.phm-pertamina.com:6443/arcgis' + '/admin/services?f=pjson'
                     header = CaseInsensitiveDict()
@@ -196,7 +196,7 @@ class LoadContentServerRest():
                                 data_svc = req_i_prop.json()
                                 filePath = data_svc['properties']['filePath']
                                 table.add_row(o_svc['serviceName'], o_folder, filePath)
-                                csvwriter.writerow([o_svc['serviceName'], o_folder, filePath])
+                                csvwriter.writerow([o_svc['serviceName'], o_folder, filePath, json.dumps(data_svc)])
                                 csvfile.flush()
                                 live.refresh()
                             except Exception as e:

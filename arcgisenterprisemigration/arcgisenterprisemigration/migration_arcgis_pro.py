@@ -68,16 +68,25 @@ class DeployArcgisPortalPro():
     def deploy_service(self, svc_name, portal_folder, server_folder, new_conn_str, lyr_mxd_path, copy_data_to_server=False,
                        overwrite_service=True,
                        credits='', summary='', tags='', description='', activate_feature_service=False, name_conn='sde'):
+        new_t_aprx = r"C:\Local\project\output\aprx"+"\\"+ svc_name + ".aprx"
+        metadata = None
+        # if os.path.exists(new_t_aprx) == False:
         self._prapare_aprx(self._config.template_aprx_path, lyr_mxd_path)
         self.append_layer(lyr_mxd_path)
         metadata = self._get_metadata()
         self._aprx.save()
         self.fixing_new_datasource(new_conn_str, name_conn)
         self._aprx.save()
+        # else:
+        #     self._aprx = arcpy.mp.ArcGISProject(new_t_aprx)
+        #     metadata = self._get_metadata()
         new_aprx_path = r"C:\Local\project\output\aprx"+"\\"+ svc_name + ".aprx"
         if os.path.exists(new_aprx_path) == False:
             self._aprx.saveACopy(new_aprx_path)
-        new_aprx = arcpy.mp.ArcGISProject(new_aprx_path)
+        else:
+            os.remove(new_aprx_path)
+            self._aprx.saveACopy(new_aprx_path)
+        #new_aprx = arcpy.mp.ArcGISProject(new_aprx_path)
         #del self._aprx
         #self._aprx.saveACopy(r"C:\Local\project\output\template2.aprx")
         self._prepare_map_service_portal_sd(svc_name, self._auth.portal_url, portal_folder, server_folder,
@@ -117,24 +126,34 @@ class DeployArcgisPortalPro():
                                        portal_url, portal_folder, server_folder,
                                        copy_data_to_server=False, overwrite_service=False,
                                        credits='', summary='', tags='', description='', activate_feature_service=False):
-        m = self._aprx.listMaps('*')[0]
-        s_draft = arcpy.sharing.CreateSharingDraft('FEDERATED_SERVER', 'MAP_SERVICE', svc_name, m)
+        l_m = self._aprx.listMaps()
+        m = None
+        for o_m in l_m:
+            if o_m.name != 'Map':
+                m = o_m
+                break
+        s_draft = m.getWebLayerSharingDraft('FEDERATED_SERVER', 'MAP_IMAGE', svc_name)
         s_draft.copyDataToServer = copy_data_to_server
         s_draft.overwriteExistingService = overwrite_service
         s_draft.portalFolder = portal_folder
         s_draft.serverFolder = server_folder
-        s_draft.federatedServerUrl = portal_url
-        s_draft.targetServer = portal_url
+        s_draft.federatedServerUrl = 'https://geoportaldev.phm.pertamina.com/arcgis'
+        # s_draft.targetServer = 'https://geoportaldev.phm.pertamina.com/arcgis/admin'
         s_draft.credits = credits
         s_draft.summary = summary
         s_draft.tags = tags
         s_draft.description = description
+        try:
 
-        s_draft.exportToSDDraft(self._config.deploy_sd_folder + svc_name + '.sddraft')
-        out_file = self.activate_some_features(svc_name, self._config.deploy_sd_folder + svc_name + '.sddraft',
-                                               activate_feature_service)
-        sd_out_file = self._prepare_sd_file(svc_name, out_file)
-        return sd_out_file
+            s_draft.exportToSDDraft(self._config.deploy_sd_folder + svc_name + '.sddraft')
+            out_file = self.activate_some_features(svc_name, self._config.deploy_sd_folder + svc_name + '.sddraft',
+                                                activate_feature_service)
+            sd_out_file = self._prepare_sd_file(svc_name, out_file)
+            arcpy.UploadServiceDefinition_server(sd_out_file, 'https://geoportaldev.phm.pertamina.com/arcgis')
+            return sd_out_file
+        except Exception as e:
+            del self._aprx
+            raise e
 
     def activate_some_features(self, svc_name, sddraft_path,
                                active_feature=False):
@@ -204,14 +223,23 @@ class DeployArcgisPortalPro():
             try:
                 if o_lyr.connectionProperties.get('connection_info') != None:
                     if o_lyr.connectionProperties['connection_info']['server'] == name_conn:
+                        qry = o_lyr.definitionQuery
                         t_connstr['dataset'] = o_lyr.connectionProperties['dataset']
-                        o_lyr.updateConnectionProperties(o_lyr.connectionProperties, t_connstr, validate=False)
+                        # o_lyr.updateConnectionProperties(
+                        #     o_lyr.connectionProperties, t_connstr, auto_update_joins_and_relates = False, validate=False)
+                        o_lyr.updateConnectionProperties(
+                            o_lyr.connectionProperties, t_connstr, auto_update_joins_and_relates = False, validate=True)
+                        # o_lyr.updateConnectionProperties(
+                        #     o_lyr.connectionProperties, t_connstr, validate=True)
+                        # o = ''
+                        o_lyr.definitionQuery = qry
+
                 if o_lyr.connectionProperties.get('event_table_source') != None:
                     if o_lyr.connectionProperties['event_table_source']['connection_info']['server'] == name_conn:
                         temp_conn = o_lyr.connectionProperties
                         temp_conn['event_table_source']['connection_info'] = t_connstr['connection_info']
                         l_i = o_lyr.connectionProperties['event_table_source']['dataset'].split('.')
-                        temp_conn['event_table_source']['dataset'] = 'geospatial.'+'.'.join(l_i[1:])
+                        temp_conn['event_table_source']['dataset'] = 'geoviewer.'+'.'.join(l_i[1:])
                         o_lyr.updateConnectionProperties(current_connection_info=o_lyr.connectionProperties, new_connection_info=temp_conn, validate=False)
 
             except Exception as e:
