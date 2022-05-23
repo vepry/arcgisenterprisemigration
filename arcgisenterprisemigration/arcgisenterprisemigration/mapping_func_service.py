@@ -1,11 +1,13 @@
-from .main import LoginArcgisServerRest
+from .main import LoginArcgisServerRest, LoginArcgisPortal
 from arcgisenterprisemigration.config import ConfigCMD
 from requests.structures import CaseInsensitiveDict
 import requests
+from arcgis.gis.server import Service
 
 class MappingServiceServer():
-    def __init__(self, auth: LoginArcgisServerRest) -> None:
+    def __init__(self, auth: LoginArcgisServerRest = None, auth_api: LoginArcgisPortal = None) -> None:
         self._auth = auth
+        self._auth_api = auth_api
 
     def save_properties(self, service_name, folder, service_type, properties_data):
         config = ConfigCMD()
@@ -17,4 +19,10 @@ class MappingServiceServer():
         o_data = res.json()
         o_data['capabilities'] = properties_data['capabilities']
         o_data['extensions'] = properties_data['extensions']
-        
+
+    def save_properties_api(self, service_name, folder, service_type, properties_data):
+        config = ConfigCMD()
+        _server_api = self._auth_api.login_server_w_portal()
+        _service = _server_api.content.get(service_name, folder)
+
+

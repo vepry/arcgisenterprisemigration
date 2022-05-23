@@ -72,7 +72,7 @@ def list_folder_portal(config, l_folder_portal):
                 l_folder_portal.append({'owner':l_r_portal[5],'name':l_r_portal[7]})
 
 def step_deploy(config, deploy_portal_target, uri_arcgisinput, token_r_arcgisinput):
-    
+
     skip_folders = ['Hosted', 'System', 'Utilities']
 
     with open(config.deploy_report_service_file, 'w', newline='\n') as deployment_report:
@@ -118,7 +118,7 @@ def step_deploy(config, deploy_portal_target, uri_arcgisinput, token_r_arcgisinp
                             deployment_report.flush()
                             continue
                         #check mxd
-                        
+
                         try:
                             deploy_portal_target = DeployArcgisPortalPro(auth_portal_pro_target, auth_portal_api_target)
                             deploy_portal_target.deploy_service(l_r_portal[1], l_r_portal[7], l_r_server[1], t_connstr_gisdbphmdev, url_mxd_file, name_conn='gisdbphmdev')
@@ -136,6 +136,35 @@ def step_deploy(config, deploy_portal_target, uri_arcgisinput, token_r_arcgisinp
                             time.sleep(15)
 
 
+def change_ownership_portal():
+    auth_portal_t = auth_portal_api_target.login_portal()
+    l_user = auth_portal_t.users.search('')
+    for user in l_user:
+        u_content = user.items()
+        for item in u_content:
+            with open('') as report_content_portal:
+                csv_content_portal_report = csv.reader(report_content_portal, delimiter=';')
+                i_r_portal = 0
+                for o_portal in csv_content_portal_report:
+                    if i_r_portal == 0:
+                        i_r_portal = i_r_portal + 1
+                        continue
+                    if o_portal[1] != item.title:
+                        continue
+                    if o_portal[5] == 'agpadmin':
+                        continue
+                    with open() as user_map:
+                        csv_user_map = csv.reader(user_map, delimiter=';')
+                        i_r_user = 0
+                        for user_report in csv_user_map:
+                            if i_r_user == 0:
+                                i_r_user = i_r_user + 1
+                                continue
+                            if user_report[0] != o_portal[5]:
+                                continue
+                            item.reassign_to(user_report[1])
+
+
 
 # arcpy.management.XYTableToPoint(r"C:\Local\EsriIndonnesia\geospatial@geodbphmdev.sde\GEOSPATIAL.WELL", r"C:\Users\L0300800\Documents\ArcGIS\Projects\MyProject\MyProject.gdb\WELL_XYTableToPoint", "X_OLD", "Y_OLD", None, 'PROJCS["Gunung_Segara_UTM_Zone_50S",GEOGCS["GCS_Gunung_Segara",DATUM["D_Gunung_Segara",SPHEROID["Bessel_1841",6377397.155,299.1528128]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",10000000.0],PARAMETER["Central_Meridian",117.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]];-5120200 3000 10000;0 1;0 1;0.001;0.001;0.001;IsHighPrecision')
 
@@ -144,6 +173,9 @@ list_folder_portal(config, l_folder_portal)
 # deploy_portal_target.create_folder(l_folder_portal, l_folder_server)
 
 step_deploy(config, deploy_portal_target, uri_arcgisinput, token_r_arcgisinput)
+
+change_ownership_portal()
+
 
 
 
